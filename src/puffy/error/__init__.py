@@ -67,9 +67,9 @@ def catch_errors(arg):
         )
 
     def safe_fn_exec(ffn):
-        def safe_exec(*args):
+        def safe_exec(*args, **named_args):
             try:
-                data = ffn(*args)
+                data = ffn(*args, **named_args)
                 return [None, data]
             except BaseException as error:
                 return [

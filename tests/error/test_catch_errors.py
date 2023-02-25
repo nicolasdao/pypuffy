@@ -15,6 +15,7 @@
 
 # import pytest  # uncomment this line to use the 'pytest' decorators
 import sys
+import re
 
 sys.path.append(".")  # noqa # Adds higher directory to python modules path.
 
@@ -32,6 +33,7 @@ def test_catch_errors_basic():
     assert err.stack
     assert len(err.stack) == 1
     assert str(err.stack[0]) == "Failed"
+    assert str(err) == "Failed"
 
 
 def test_catch_errors_wrapped():
@@ -91,3 +93,53 @@ def test_catch_errors_StackedException_arbitrary_inputs():
     assert str(err.stack[1]) == "As expected, it failed!"
     assert str(err.stack[2]) == "Should fail again"
     assert str(err.stack[3]) == "Failed again"
+
+
+def test_catch_errors_arbitrary_inputs():
+    @catch_errors("Should fail")
+    def fail(name, age=41):
+        err, resp = fail_again()
+        if err:
+            raise e(f"As expected, it failed for {name} (age:{age})", err)
+        return "yes"
+
+    @catch_errors("Should fail again")
+    def fail_again():
+        raise Exception("Failed again")
+        return "yes"
+
+    err, resp = fail("Peter", age=32)
+    assert err
+    assert err.stack
+    assert len(err.stack) == 4
+    assert str(err.stack[0]) == "Should fail"
+    assert str(err.stack[1]) == "As expected, it failed for Peter (age:32)"
+    assert str(err.stack[2]) == "Should fail again"
+    assert str(err.stack[3]) == "Failed again"
+
+
+def test_catch_errors_stringify_stack():
+    @catch_errors("Should fail")
+    def fail(name, age=41):
+        err, resp = fail_again()
+        if err:
+            raise e(f"As expected, it failed for {name} (age:{age})", err)
+        return "yes"
+
+    @catch_errors("Should fail again")
+    def fail_again():
+        raise Exception("Failed again")
+        return "yes"
+
+    err, resp = fail("Peter", age=32)
+    assert err
+    assert err.stack
+    stack_details = err.stringify()
+    assert stack_details
+    error_msgs = re.findall(r"error:\s(.*?)\n", stack_details)
+    assert error_msgs
+    assert len(error_msgs) == 4
+    assert error_msgs[0] == "Should fail"
+    assert error_msgs[1] == "As expected, it failed for Peter (age:32)"
+    assert error_msgs[2] == "Should fail again"
+    assert error_msgs[3] == "Failed again"
