@@ -6,13 +6,29 @@
 
 from collections.abc import Iterable
 import traceback
+import inspect
+
+
+class _WrappedFunction:
+    def __init__(self, name="_unknown_function", file="unknown", line=0):
+        self.name = name
+        self.file = file
+        self.line = line
+        self.description = f'File "{file}", line {line}, in {name}'
 
 
 class StackedException(Exception):
     def __init__(self, *errors):
         def __flatten(*errors):
             stack = []
-            for error in errors:
+            head, *tails = errors
+            _errors = errors
+            self.__wrapped_fn = None
+            if head and isinstance(head, _WrappedFunction):
+                self.__wrapped_fn = head
+                _errors = tails
+
+            for error in _errors:
                 if isinstance(error, StackedException):
                     stack.extend(error.stack)
                 elif isinstance(error, Exception):
@@ -29,7 +45,7 @@ class StackedException(Exception):
                     stack.append(Exception(error))
             return stack
 
-        self.stack = __flatten(*errors)
+        self.stack = [] if len(errors) == 0 else __flatten(*errors)
 
         ln = len(self.stack)
         head = "Unknown error" if ln == 0 else self.stack[0]
@@ -39,12 +55,18 @@ class StackedException(Exception):
         if len(self.stack):
             errors = []
             for error in self.stack:
+                error_text = str(error)
+                error_trace = ""
+                error_meta = (
+                    f"\n  {self.__wrapped_fn.description}" if self.__wrapped_fn else ""
+                )
                 if hasattr(error, "__traceback__") and error.__traceback__:
-                    s = "".join(traceback.format_tb(error.__traceback__))
-                    s = "\n" + s if s else ""
-                    errors.append(f"error: {str(error)}{s}")
-                else:
-                    errors.append(f"error: {str(error)}")
+                    error_trace = "".join(traceback.format_tb(error.__traceback__))
+                    error_trace = "\n" + error_trace if error_trace else ""
+
+                errors.append(
+                    f"error: {error_text}{error_trace if error_trace else error_meta}"
+                )
             return "\n".join(errors)
         else:
             return ""
@@ -68,14 +90,26 @@ def catch_errors(arg):
 
     def safe_fn_exec(ffn):
         def safe_exec(*args, **named_args):
+            fn_name = fn_file = fn_line = None
             try:
+                try:
+                    fn_name = ffn.__name__
+                    fn_file = inspect.getfile(ffn)
+                    try:
+                        lines = inspect.getsourcelines(ffn)
+                        fn_line = lines[1] if lines and len(lines) >= 2 else 0
+                    except:
+                        fn_line = ""
+                except:
+                    fn_name = fn_file = fn_line = ""
                 data = ffn(*args, **named_args)
                 return [None, data]
             except BaseException as error:
+                name = _WrappedFunction(fn_name, fn_file, fn_line)
                 return [
-                    StackedException(wrappingError, error)
+                    StackedException(name, wrappingError, error)
                     if wrappingError
-                    else StackedException(error),
+                    else StackedException(name, error),
                     None,
                 ]
 

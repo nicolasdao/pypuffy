@@ -13,6 +13,7 @@ pip install puffy
 >		- [Basic `error` APIs](#basic-error-apis)
 >		- [Nested errors and error stack](#nested-errors-and-error-stack)
 >	- [`object`](#object)
+>		- [`JSON` API](#json-api)
 > * [Dev](#dev)
 >	- [CLI commands](#cli-commands)
 >	- [Install dependencies with `easypipinstall`](#install-dependencies-with-easypipinstall)
@@ -93,16 +94,35 @@ print(str(err.stack[3])) # Failed again
 # Use the `strinfigy` method to extract the full error stack details.
 print(err.strinfigy()) 
 # error: Should fail
+#   File "blablabla.py", line 72, in fail
 # error: As expected, it failed!
+#   File "blablabla.py", line 72, in fail
 # error: Should fail again
+#   File "blablabla.py", line 72, in fail
 # error: Failed again
 #   File "blablabla.py", line 72, in safe_exec
 #     data = ffn(*args, **named_args)
-#   File "blablabla.py", line 28, in fail
+#   File "blablabla.py", line 28, in fail_again
 #     raise Exception("Failed")
 ```
 
 ## `object`
+### `JSON` API
+
+```python
+from puffy.object import JSON as js
+
+obj = js({ 'hello':'world' })
+obj['person']['name'] = 'Nic' # Notice it does not fail.
+obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street' and return 'Magic street'
+
+print(obj['person']['name']) # Nic
+print(obj) # { 'hello':'world', 'person': { 'name': 'Nic' } }
+print(obj.g('address.line1')) # Magic street
+print(obj) # { 'hello':'world', 'person': { 'name': None }, 'address': { 'line1': 'Magic street' } }
+print(obj.g('address.line2')) # Nonce
+print(obj) # { 'hello':'world', 'person': { 'name': None }, 'address': { 'line1': 'Magic street', line2: None } }
+```
 
 # Dev
 ## CLI commands
@@ -114,6 +134,7 @@ print(err.strinfigy())
 | `make b` | Builds the package. |
 | `make p` | Publish the package to https://pypi.org. |
 | `make bp` | Builds the package and then publish it to https://pypi.org. |
+| `make bi` | Builds the package and install it locally (`pip install -e .`). |
 | `make install` | Install the dependencies defined in the `requirements.txt`. This file contains all the dependencies (i.e., both prod and dev). |
 | `make install-prod` | Install the dependencies defined in the `prod-requirements.txt`. This file only contains the production dependencies. |
 | `make n` | Starts a Jupyter notebook for this project. |
@@ -217,6 +238,8 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 
 ## Building and distributing this package
 
+> Tl;dr, `make bp` builds and publishes your package to https://pypi.org.
+
 To build your package, run:
 
 ```
@@ -237,6 +260,20 @@ This command is a wrapper around the following commands:
 python3 -m build; \
 twine upload dist/*
 ```
+
+Those two steps have been bundled in a single command:
+
+```
+make bp
+```
+
+To test your package locally before deploying it to https://pypi.org, you can run build and install it locally with this command:
+
+```
+make bi
+```
+
+This command buils the package and follows with `pip install -e .`.
 
 # FAQ
 

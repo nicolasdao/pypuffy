@@ -4,6 +4,11 @@ b:
 	rm -rf dist; \
 	rm -rf src/*.egg-info; \
 	python3 -m build
+bi:
+	rm -rf dist; \
+	rm -rf src/*.egg-info; \
+	python3 -m build; \
+	pip install -e .
 bp:
 	rm -rf dist; \
 	rm -rf src/*.egg-info; \
