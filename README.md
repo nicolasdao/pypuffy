@@ -6,6 +6,28 @@ A collection of modules with zero-dependencies to help manage common programming
 pip install puffy
 ```
 
+Usage examples:
+
+```python
+from puffy.error import catch_errors, StackedException
+
+# This function will never fail. Instead, the error is safely caught.
+@catch_errors
+def fail():
+    raise Exception("Failed")
+    return "yes"
+
+err, resp = fail() # `err` and `resp` are respectively None and Object when the function is successull. Otherwise, they are respectively StackedException and None.
+```
+
+```python
+from puffy.object import JSON as js
+
+obj = js({ 'hello':'world' })
+obj['person']['name'] = 'Nic' # Notice it does not fail.
+obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street' and return 'Magic street'
+```
+
 # Table of contents
 
 > * [APIs](#apis)
