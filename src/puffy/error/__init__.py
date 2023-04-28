@@ -76,10 +76,17 @@ def catch_errors(arg):
     if not arg:
         raise Exception("Missing required argument.")
 
+    isAsyncFunction = inspect.iscoroutinefunction(arg)
+    isSyncFunction = callable(arg)
+    if isAsyncFunction:
+        raise Exception(
+            "Invalid argument exception. 'catch_errors' does not accept coroutines (i.e., async/await functions). Use 'async_catch_errors' instead."
+        )
+
     fn = None
     wrappingError = None
 
-    if callable(arg):
+    if isSyncFunction:
         fn = arg
     elif isinstance(arg, str):
         wrappingError = Exception(arg)
@@ -116,3 +123,55 @@ def catch_errors(arg):
         return safe_exec
 
     return safe_fn_exec(fn) if fn else safe_fn_exec
+
+
+def async_catch_errors(arg):
+    if not arg:
+        raise Exception("Missing required argument.")
+    isAsyncFunction = inspect.iscoroutinefunction(arg)
+    isSyncFunction = callable(arg) and not isAsyncFunction
+    if isSyncFunction:
+        raise Exception(
+            "Invalid argument exception. 'async_catch_errors' does not accept synchronous functions. Use 'catch_errors' instead."
+        )
+
+    afn = None
+    wrappingError = None
+
+    if isAsyncFunction:
+        afn = arg
+    elif isinstance(arg, str):
+        wrappingError = Exception(arg)
+    else:
+        raise Exception(
+            f'Wrong argument exception. "catch_errors"\'s argument must be a function or a string. Found {type(arg).__name__} instead.'
+        )
+
+    def safe_fn_exec(ffn):
+        async def async_safe_exec(*args, **named_args):
+            fn_name = fn_file = fn_line = None
+            try:
+                try:
+                    fn_name = ffn.__name__
+                    fn_file = inspect.getfile(ffn)
+                    try:
+                        lines = inspect.getsourcelines(ffn)
+                        fn_line = lines[1] if lines and len(lines) >= 2 else 0
+                    except:
+                        fn_line = ""
+                except:
+                    fn_name = fn_file = fn_line = ""
+                data = await ffn(*args, **named_args)
+                return [None, data]
+            except BaseException as error:
+                name = _WrappedFunction(fn_name, fn_file, fn_line)
+                return [
+                    StackedException(name, wrappingError, error)
+                    if wrappingError
+                    else StackedException(name, error),
+                    None,
+                ]
+
+        return async_safe_exec
+
+    return safe_fn_exec(afn) if afn else safe_fn_exec

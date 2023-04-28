@@ -9,7 +9,7 @@ pip install puffy
 Usage examples:
 
 ```python
-from puffy.error import catch_errors, StackedException
+from puffy.error import catch_errors
 
 # This function will never fail. Instead, the error is safely caught.
 @catch_errors
@@ -32,8 +32,9 @@ obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street
 
 > * [APIs](#apis)
 >	- [`error`](#error)
->		- [Basic `error` APIs](#basic-error-apis)
+>		- [Basic `error` APIs - Getting in control of your errors](#basic-error-apis---getting-in-control-of-your-errors)
 >		- [Nested errors and error stack](#nested-errors-and-error-stack)
+>		- [Managing errors in `async/await` corountines](#managing-errors-in-asyncawait-corountines)
 >	- [`object`](#object)
 >		- [`JSON` API](#json-api)
 > * [Dev](#dev)
@@ -55,10 +56,10 @@ The `error` module exposes the following APIs:
 - `catch_errors`: A higher-order function that returns a function that always return a tuple `(error, response)`. If the `error` is `None`, then the function did not fail. Otherwise, it did and the `error` object can be used to build an error stack.
 - `StackedException`: A class that inherits from `Exception`. Use it to stack errors.
 
-### Basic `error` APIs
+### Basic `error` APIs - Getting in control of your errors
 
 ```python
-from puffy.error import catch_errors, StackedException
+from puffy.error import catch_errors
 
 # This function will never fail. Instead, the error is safely caught.
 @catch_errors
@@ -128,6 +129,38 @@ print(err.strinfigy())
 #     raise Exception("Failed")
 ```
 
+### Managing errors in `async/await` corountines
+
+```python
+from puffy.error import async_catch_errors
+import asyncio
+
+# This function will never fail. Instead, the error is safely caught.
+@async_catch_errors
+async def fail():
+    await asyncio.sleep(0.01)
+    raise Exception("Failed")
+    return "yes"
+
+loop = asyncio.get_event_loop()
+err, resp = loop.run_until_complete(fail())
+
+print(resp) # None
+print(type(err)) # <class 'src.puffy.error.StackedException'> which inherits from Exception
+print(str(err)) # Failed
+print(len(err.stack)) # 1
+print(str(err.stack[0])) # Failed
+print(err.stack[0].__traceback__) # <traceback object at 0x7fc69066bf00>
+
+# Use the `strinfigy` method to extract the full error stack details.
+print(err.strinfigy()) 
+# error: Failed
+#   File "blablabla.py", line 72, in safe_exec
+#     data = ffn(*args, **named_args)
+#   File "blablabla.py", line 28, in fail
+#     raise Exception("Failed")
+```
+
 ## `object`
 ### `JSON` API
 
@@ -160,7 +193,8 @@ print(obj) # { 'hello':'world', 'person': { 'name': None }, 'address': { 'line1'
 | `make install` | Install the dependencies defined in the `requirements.txt`. This file contains all the dependencies (i.e., both prod and dev). |
 | `make install-prod` | Install the dependencies defined in the `prod-requirements.txt`. This file only contains the production dependencies. |
 | `make n` | Starts a Jupyter notebook for this project. |
-| `make t` | Formats adnd then lints the project. |
+| `make t` | Formats, lints and then unit tests the project. |
+| `make t testpath=<FULLY QUALIFIED TEST PATH>` | Foccuses the unit test on a specific test. For a concrete example, please refer to the [Executing a specific test only](#executing-a-specific-test-only) section. |
 | `easyi numpy` | Instals `numpy` and update `setup.cfg`, `prod-requirements.txt` and `requirements.txt`. |
 | `easyi flake8 -D` | Instals `flake8` and update `setup.cfg` and `requirements.txt`. |
 | `easyu numpy` | Uninstals `numpy` and update `setup.cfg`, `prod-requirements.txt` and `requirements.txt`. |
@@ -260,7 +294,9 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 
 ## Building and distributing this package
 
-> Tl;dr, `make bp` builds and publishes your package to https://pypi.org.
+> Tl;dr, Update the version in the `setup.cfg` file, and then run `make bp` to build and publish your package to https://pypi.org.
+
+__IMPORTANT:__ First, make sure you've updated the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag vx.x.x`.
 
 To build your package, run:
 
@@ -288,6 +324,8 @@ Those two steps have been bundled in a single command:
 ```
 make bp
 ```
+
+> __IMPORTANT:__ Don't forget to update the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag vx.x.x`.
 
 To test your package locally before deploying it to https://pypi.org, you can run build and install it locally with this command:
 
