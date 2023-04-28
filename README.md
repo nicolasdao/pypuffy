@@ -38,6 +38,7 @@ obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street
 >	- [`object`](#object)
 >		- [`JSON` API](#json-api)
 > * [Dev](#dev)
+>	- [Getting started](#dev---getting-started)
 >	- [CLI commands](#cli-commands)
 >	- [Install dependencies with `easypipinstall`](#install-dependencies-with-easypipinstall)
 >	- [Linting, formatting and testing](#linting-formatting-and-testing)
@@ -180,12 +181,39 @@ print(obj) # { 'hello':'world', 'person': { 'name': None }, 'address': { 'line1'
 ```
 
 # Dev
+## Dev - Getting started
+
+1. Clone this project:
+```shell
+git clone https://github.com/nicolasdao/pypuffy.git
+```
+2. Browse to the root folder:
+```shell
+cd pypuffy
+```
+3. Create a new virtual environment:
+```shell
+python3 -m venv .venv
+```
+4. Activate this virtual environment:
+```shell
+source .venv/bin/activate
+```
+
+To deactivate that virtual environment:
+```shell
+deactivate
+```
+
 ## CLI commands
 
 `make` commands:
 
 | Command | Description |
 |:--------|:------------|
+| `python3 -m venv .venv` | Create a new virtual environment. |
+| `source .venv/bin/activate` | Activate the virtual environment |
+| `deactivate` | Deactivate the virtual environment |
 | `make b` | Builds the package. |
 | `make p` | Publish the package to https://pypi.org. |
 | `make bp` | Builds the package and then publish it to https://pypi.org. |
@@ -296,7 +324,7 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 
 > Tl;dr, Update the version in the `setup.cfg` file, and then run `make bp` to build and publish your package to https://pypi.org.
 
-__IMPORTANT:__ First, make sure you've updated the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag vx.x.x`.
+__IMPORTANT:__ First, make sure you've updated the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag -a vx.x.x -m vx.x.x`.
 
 To build your package, run:
 
@@ -325,7 +353,7 @@ Those two steps have been bundled in a single command:
 make bp
 ```
 
-> __IMPORTANT:__ Don't forget to update the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag vx.x.x`.
+> __IMPORTANT:__ Don't forget to update the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag -a vx.x.x -m vx.x.x`.
 
 To test your package locally before deploying it to https://pypi.org, you can run build and install it locally with this command:
 
