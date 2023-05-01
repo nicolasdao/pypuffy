@@ -430,17 +430,21 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 ```shell
 make t
 ```
-2. Build this package:
-```shell
-make b
-```
-> This command is a wrapper around `python3 -m build`.
-3. Version and tag this package using one of the following command (1):
+2. Version and tag this package using one of the following command (1):
     - `easyv bump`: Use this to bump the patch version.
     - `easyv bump minor`: Use this to bump the minor version.
     - `easyv bump major`: Use this to bump the major version.
     - `easyv bump x.x.x`: Use this to bump the version to a specific value.
-4 . Publish this package to https://pypi.org:
+3. Push those latest changes to your source control repository (incl. tags). For example:
+```shell
+git push origin master --follow-tags
+```
+4. Build this package:
+```shell
+make b
+```
+> This command is a wrapper around `python3 -m build`.
+5 . Publish this package to https://pypi.org:
 ```shell
 make p
 ```
