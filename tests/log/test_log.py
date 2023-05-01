@@ -17,6 +17,7 @@
 import sys
 import json
 import re
+import os
 
 sys.path.append(".")  # noqa # Adds higher directory to python modules path.
 
@@ -75,25 +76,78 @@ def test_basic_log():
         "op_id": "1234",
         "data": {"hello": "world"},
     }
+    input_07 = {
+        "level": "WARN",
+        "message": "Hello world",
+        "code": "03030303",
+        "metric": 34,
+        "unit": "seconds",
+        "op_id": "1234",
+        "data": {"hello": "world"},
+        "hello": "world",
+    }
+    input_07_out = {
+        "level": "WARN",
+        "hello": "world",
+        "message": "Hello world",
+        "code": "03030303",
+        "metric": 34,
+        "unit": "seconds",
+        "op_id": "1234",
+        "data": {"hello": "world"},
+    }
 
+    log(print_mock=print_mock)
     log(**input_01, print_mock=print_mock)
     log(**input_02, print_mock=print_mock)
     log(**input_03, print_mock=print_mock)
     log(**input_04, print_mock=print_mock)
     log(**input_05, print_mock=print_mock)
     log(**input_06, print_mock=print_mock)
+    log(**input_07, print_mock=print_mock)
 
     # print()
     # print(logs[0])
     # print(json.dumps(input_01))
 
-    assert len(logs) == 6
+    assert len(logs) == 8
     assert logs[0] == json.dumps({"level": "INFO"})
-    assert logs[1] == json.dumps(input_02)
-    assert logs[2] == json.dumps(input_03)
-    assert logs[3] == json.dumps(input_04_out)
-    assert logs[4] == json.dumps(input_05)
-    assert logs[5] == json.dumps(input_06)
+    assert logs[1] == json.dumps({"level": "INFO"})
+    assert logs[2] == json.dumps(input_02)
+    assert logs[3] == json.dumps(input_03)
+    assert logs[4] == json.dumps(input_04_out)
+    assert logs[5] == json.dumps(input_05)
+    assert logs[6] == json.dumps(input_06)
+    assert logs[7] == json.dumps(input_07_out)
+
+
+def test_env_var_log():
+    os.environ["LOG_META"] = json.dumps({"api_name": "hello"})
+
+    logs = []
+
+    def print_mock(msg):
+        logs.append(msg)
+
+    input_01 = {
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+    input_01_out = {
+        "api_name": "hello",
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+
+    log(**input_01, print_mock=print_mock)
+    assert len(logs) == 1
+    assert logs[0] == json.dumps(input_01_out)
+
+    os.environ["LOG_META"] = ""
 
 
 def test_incl_errors_log():

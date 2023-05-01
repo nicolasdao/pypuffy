@@ -7,27 +7,23 @@
 import os
 import json
 import secrets
-import copy
 import traceback
 from ..error import StackedException
 
-LOG_META = os.getenv("LOG_META")
 LEVELS = ["INFO", "WARN", "ERROR", "CRITICAL"]
 
 
 def _getGlobalMeta():
-    if LOG_META and (LOG_META is not None):
+    log_meta = os.getenv("LOG_META")
+    if log_meta and (log_meta is not None):
         try:
-            meta = json.loads(LOG_META)
-            if meta and meta.__name__ and meta.__name__ == "dict":
+            meta = json.loads(log_meta)
+            if meta and type(meta) == dict:
                 return meta
         except:
             pass
 
     return {}
-
-
-META = _getGlobalMeta()
 
 
 def _get_id():
@@ -88,9 +84,16 @@ def log(
         if level not in LEVELS:
             level = "INFO"
 
-        log_data = copy.deepcopy(META)
-        log_data.update(args)
-        log_data.update({"level": level})
+        log_data = _getGlobalMeta()
+        log_data["level"] = level
+        try:
+            for key in args:
+                try:
+                    log_data[key] = args[key]
+                except:
+                    pass
+        except:
+            pass
 
         if message and type(message) == str:
             log_data["message"] = message
@@ -135,5 +138,25 @@ def log(
             print_mock(log_str)
         else:
             print(log_str)
-    except:
+    except Exception as e:
+        try:
+            log_str = json.dumps(
+                {
+                    "level": "ERROR",
+                    "message": "puffy.log failed",
+                    "data": {
+                        "message": f"{message}",
+                        "message_type": str(type(message)),
+                        "code": f"{code}",
+                        "code_type": str(type(code)),
+                    },
+                    "errors": str(e),
+                }
+            )
+            if print_mock and print_mock is not None:
+                print_mock(log_str)
+            else:
+                print(log_str)
+        except:
+            pass
         pass

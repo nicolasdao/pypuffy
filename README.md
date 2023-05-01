@@ -35,6 +35,10 @@ obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street
 >		- [Basic `error` APIs - Getting in control of your errors](#basic-error-apis---getting-in-control-of-your-errors)
 >		- [Nested errors and error stack](#nested-errors-and-error-stack)
 >		- [Managing errors in `async/await` corountines](#managing-errors-in-asyncawait-corountines)
+>   - [`log`](#log)
+>       - [Basic `log` APIs](#basic-log-apis)
+>       - [Logging errors](#logging-errors)
+>       - [Environment variables](#environment-variables)
 >	- [`object`](#object)
 >		- [`JSON` API](#json-api)
 > * [Dev](#dev)
@@ -160,6 +164,95 @@ print(err.strinfigy())
 #     data = ffn(*args, **named_args)
 #   File "blablabla.py", line 28, in fail
 #     raise Exception("Failed")
+```
+
+## `log`
+### Basic `log` APIs
+
+This method prints a structured log to stdout. That structured log is a standard Python `dict` which is then serialized to `str` using `json.dumps`. This method is designed to never fail. It was originally designed to log messages to AWS CloudWatch.
+
+```python
+from puffy.log import log
+
+log() # '{ "level":"INFO" }'
+
+log(
+    level="WARN", # Supported values: "INFO" (default), "WARN" (or "WARNING"), "ERROR", "CRITICAL"
+    message="Seems drunk",
+    code="drunky_drunky",
+    metric=23,
+    unit="beers", # Default is "ms" (i.e., milliseconds)
+    data= {
+        "name": "Dave",
+        "age": 45
+    },
+    op_id= 12345,
+    test=True
+) # '{"level": "WARN", "message": "Seems drunk", "code": "drunky_drunky", "test": true, "metric": 23, "unit": "beers", "op_id": 12345, "data": {"name": "Dave", "age": 45}}'
+
+# Logging time:
+log(
+    level="WARN", # Supported values: "INFO" (default), "WARN" (or "WARNING"), "ERROR", "CRITICAL"
+    message="Seems drunk",
+    code="drunky_drunky",
+    time=34 # This is converted to the "metric" input with "unit" set to "ms" (cannot be overwritten)
+) # '{"level": "WARN", "message": "Seems drunk", "code": "drunky_drunky", "metric": 34, "unit": "ms"}'
+```
+
+### Logging errors
+
+The `log` API is designed to support puffy's `StackedException` errors. The advantage of using `StackedException` is that you can have confidence that the stacked errors are properly serialized (i.e., including message and traceback).
+
+```python
+from puffy.log import log
+from puffy.error import catch_errors, StackedException as e
+
+@catch_errors("Should fail")
+def fail():
+    err, resp = fail_again()
+    if err:
+        raise e(err)
+    return "yes"
+
+@catch_errors("Should fail again")
+def fail_again():
+    raise Exception("Failed again")
+    return "yes"
+
+err, *_ = fail()
+
+# Supports `StackedException`
+log(
+    level="ERROR",
+    errors=err) 
+# '{"level": "INFO", "errors": "error: Should fail\n  File \"/Users/.../ur_code.py\", line 153, in fail\nerror: Should fail again\n  File \"/Users/.../ur_code.py\", line 153, in fail\nerror: Failed again\n  File \"/Users/.../ur_code.py\", line 112, in safe_exec\n    data = ffn(*args, **named_args)\n  File \"/Users/.../ur_code.py\", line 162, in fail_again\n    raise Exception(\"Failed again\")\n"}'
+
+# Supports standard errors
+log(
+    level="ERROR",
+    errors=Exception("Bim bam boom")) # '{"level": "ERROR", "errors": "Bim bam boom"}'
+
+# Supports strings
+log(
+    level="ERROR",
+    errors="Bim bam boom") # '{"level": "ERROR", "errors": "Bim bam boom"}'
+
+# Supports list of errors
+log(
+    level="ERROR",
+    errors=["Bim bam boom", Exception("Booom"), err]) # '{"level": "ERROR", "errors": "Bim bam boom\nBooom\nerror: Should fail\n  File \"/Users/.../ur_code.py\", line 153, in fail\nerror: Should fail again\n  File \"/Users/.../ur_code.py\", line 153, in fail\nerror: Failed again\n  File \"/Users/.../ur_code.py\", line 112, in safe_exec\n    data = ffn(*args, **named_args)\n  File \"/Users/.../ur_code.py\", line 162, in fail_again\n    raise Exception(\"Failed again\")\n"}'
+```
+
+### Environment variables
+
+Often, specific common metadata must be added to all logs (e.g., server's details, api name, ...). For this purpose, use the `LOG_META` environment variable. This environment variable expects a stringified JSON object:
+
+```python
+from puffy.log import log
+
+os.environ["LOG_META"] = json.dumps({"api_name": "hello"})
+
+log(level="INFO", message="hello world") # '{"api_name": "hello", "level": "INFO", "message": "hello world"}'
 ```
 
 ## `object`
