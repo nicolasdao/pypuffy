@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 
 
+## [0.3.1](https://github.com/nicolasdao/pypuffy/compare/v0.3.0...v0.3.1) (2023-05-01)
+
+### Documentation
+
+- Fix the dev section 'Building and distributing this package' ([77a396c](https://github.com/nicolasdao/pypuffy/commit/77a396c))
+
+
 ## [0.3.0](https://github.com/nicolasdao/pypuffy/compare/v0.2.0...v0.3.0) (2023-05-01)
 
 ### Features
