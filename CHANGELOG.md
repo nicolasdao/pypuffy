@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 
 
+## [0.3.2](https://github.com/nicolasdao/pypuffy/compare/v0.3.1...v0.3.2) (2023-05-01)
+
+### Documentation
+
+- Fix typo ([557a50e](https://github.com/nicolasdao/pypuffy/commit/557a50e))
+
+
 ## [0.3.1](https://github.com/nicolasdao/pypuffy/compare/v0.3.0...v0.3.1) (2023-05-01)
 
 ### Documentation
