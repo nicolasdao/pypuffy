@@ -226,10 +226,21 @@ deactivate
 | `easyi numpy` | Instals `numpy` and update `setup.cfg`, `prod-requirements.txt` and `requirements.txt`. |
 | `easyi flake8 -D` | Instals `flake8` and update `setup.cfg` and `requirements.txt`. |
 | `easyu numpy` | Uninstals `numpy` and update `setup.cfg`, `prod-requirements.txt` and `requirements.txt`. |
+| `easyv` | Returns the version defined in `setup.cfg`. |
+| `easyv bump` | Bumps the patch version defined in `setup.cfg` (1).|
+| `easyv bump minor` | Bumps the minor version defined in `setup.cfg` (1).|
+| `easyv bump major` | Bumps the major version defined in `setup.cfg` (1).|
+| `easyv bump x.x.x` | Sets the version defined in `setup.cfg` to x.x.x (1).|
+
+> __(1):__ Bumping a version using `easyv` can apply up to three updates:
+>1. Updates the version property in the `setup.cfg` file.
+>2. If the project is under source control with git and git is installed:
+>   1. Updates the `CHANGELOG.md` file using the commit messages between the current branch and the last version tag. If the `CHANGELOG.md` file does not exist, it is automatically created.
+>   2. git commit and tag (using the version number prefixed with `v`) the project.
 
 ## Install dependencies with `easypipinstall`
 
-`easypipinstall` adds two new CLI utilities: `easyi` (install) and `easyu` (uninstall).
+`easypipinstall` adds three new CLI utilities: `easyi` (install) `easyu` (uninstall) and `easyv` (manages package's version). To learn the full details about `easypipinstall`, please refer to https://github.com/nicolasdao/easypipinstall.
 
 Examples:
 ```
@@ -322,46 +333,39 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 
 ## Building and distributing this package
 
-> Tl;dr, Update the version in the `setup.cfg` file, and then run `make bp` to build and publish your package to https://pypi.org.
-
-__IMPORTANT:__ First, make sure you've updated the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag -a vx.x.x -m vx.x.x`.
-
-To build your package, run:
-
+1. Make sure the test and lint operations have not produced errors:
+```shell
+make t
 ```
+2. Build this package:
+```shell
 make b
 ```
-
-This command is a wrapper around `python3 -m build`.
-
-To build and publish your package to https://pypi.org, run:
-
-```
+> This command is a wrapper around `python3 -m build`.
+3. Version and tag this package using one of the following command (1):
+    - `easyv bump`: Use this to bump the patch version.
+    - `easyv bump minor`: Use this to bump the minor version.
+    - `easyv bump major`: Use this to bump the major version.
+    - `easyv bump x.x.x`: Use this to bump the version to a specific value.
+4 . Publish this package to https://pypi.org:
+```shell
 make p
 ```
+> This command is a wrapper around the following commands: `python3 -m build; twine upload dist/*`
 
-This command is a wrapper around the following commands:
-
-```
-python3 -m build; \
-twine upload dist/*
-```
-
-Those two steps have been bundled in a single command:
-
-```
-make bp
-```
-
-> __IMPORTANT:__ Don't forget to update the version in the the `setup.cfg` file. Ideally, you should also tag your git repository `git tag -a vx.x.x -m vx.x.x`.
 
 To test your package locally before deploying it to https://pypi.org, you can run build and install it locally with this command:
 
-```
+```shell
 make bi
 ```
 
 This command buils the package and follows with `pip install -e .`.
+
+> (1): This step applies three updates:
+> 1. Updates the version property in the `setup.cfg` file.
+> 2. Updates the `CHANGELOG.md` file using the commit messages between the current branch and the last version tag.
+> 3. git commit and tag (using the version number prefixed with `v`) the project.
 
 # FAQ
 

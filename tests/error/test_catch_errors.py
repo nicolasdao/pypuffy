@@ -30,6 +30,7 @@ def test_catch_errors_basic():
         return "yes"
 
     err, resp = fail()
+    assert isinstance(err, e)
     assert err
     assert err.stack
     assert len(err.stack) == 1
