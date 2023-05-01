@@ -444,7 +444,7 @@ git push origin master --follow-tags
 make b
 ```
 > This command is a wrapper around `python3 -m build`.
-5 . Publish this package to https://pypi.org:
+5. Publish this package to https://pypi.org:
 ```shell
 make p
 ```
