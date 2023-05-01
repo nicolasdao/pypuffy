@@ -430,7 +430,7 @@ make t testpath=tests/error/test_catch_errors.py::test_catch_errors_StackedExcep
 ```shell
 make t
 ```
-2. Version and tag this package using one of the following command (1):
+2. Version and tag this package using one of the following commands (1):
     - `easyv bump`: Use this to bump the patch version.
     - `easyv bump minor`: Use this to bump the minor version.
     - `easyv bump major`: Use this to bump the major version.
