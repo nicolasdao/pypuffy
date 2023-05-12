@@ -132,7 +132,7 @@ def log(
             except:
                 pass
 
-        log_str = json.dumps(log_data)
+        log_str = json.dumps(log_data, default=str)
 
         if print_mock and print_mock is not None:
             print_mock(log_str)
@@ -151,7 +151,8 @@ def log(
                         "code_type": str(type(code)),
                     },
                     "errors": str(e),
-                }
+                },
+                default=str,
             )
             if print_mock and print_mock is not None:
                 print_mock(log_str)

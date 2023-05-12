@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. 
 
+## [0.3.4](https://github.com/nicolasdao/pypuffy/compare/v0.3.3...v0.3.4) (2023-05-12)
+
+
 ## [0.3.3](https://github.com/nicolasdao/pypuffy/compare/v0.3.2...v0.3.3) (2023-05-01)
 
 ### Documentation
