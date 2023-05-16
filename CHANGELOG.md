@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 
 
+## [0.4.0](https://github.com/nicolasdao/pypuffy/compare/v0.3.4...v0.4.0) (2023-05-16)
+
+### Features
+
+- Add support for global log context ([31e6158](https://github.com/nicolasdao/pypuffy/commit/31e6158))
+
+
 ## [0.3.4](https://github.com/nicolasdao/pypuffy/compare/v0.3.3...v0.3.4) (2023-05-12)
 
 
