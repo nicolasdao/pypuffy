@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import copy
 import json
 import secrets
 import traceback
@@ -63,6 +64,32 @@ def _stringify_error(error):
         return ""
 
 
+global_context = {}
+
+
+def set_context(**args):
+    global global_context
+    try:
+        for key in args:
+            global_context[key] = args[key]
+    except:
+        pass
+
+
+def reset_context():
+    global global_context
+    global_context = {}
+
+
+def get_context():
+    clone = {}
+    try:
+        clone = copy.deepcopy(global_context)
+    except:
+        pass
+    return clone
+
+
 def log(
     level="INFO",
     message=None,
@@ -85,6 +112,13 @@ def log(
             level = "INFO"
 
         log_data = _getGlobalMeta()
+
+        try:
+            for key in global_context:
+                log_data[key] = global_context[key]
+        except:
+            pass
+
         log_data["level"] = level
         try:
             for key in args:

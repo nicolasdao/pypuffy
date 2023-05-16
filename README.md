@@ -39,6 +39,7 @@ obj.s('address.line1', 'Magic street') # Sets obj.address.line1 to 'Magic street
 >       - [Basic `log` APIs](#basic-log-apis)
 >       - [Logging errors](#logging-errors)
 >       - [Environment variables](#environment-variables)
+>       - [Global context](#global-context)
 >	- [`object`](#object)
 >		- [`JSON` API](#json-api)
 > * [Dev](#dev)
@@ -253,6 +254,38 @@ from puffy.log import log
 os.environ["LOG_META"] = json.dumps({"api_name": "hello"})
 
 log(level="INFO", message="hello world") # '{"api_name": "hello", "level": "INFO", "message": "hello world"}'
+```
+
+### Global context
+
+puffy supports setting up a context globally. That context is a dictionary global to the current execution thread. By default, that context contains no keys (i.e., `{}`). If that context is set as follow:
+
+```python
+{ "hello": "world" }
+```
+
+Then, all logs include that keyvalue pair.
+
+This global context can be accessed as follow:
+
+```python
+from puffy.log import log, set_context, get_context, reset_context
+
+log(level="INFO", message="hello world") # '{"level": "INFO", "message": "hello world"}'
+
+print(get_context()) # {}
+
+set_context(hello="world", whatever="you want")
+
+log(level="INFO", message="hello world") # '{"hello":"world", "whatever":"you want", "level": "INFO", "message": "hello world"}'
+
+print(get_context()) # {"hello":"world", "whatever":"you want"}
+
+reset_context()
+
+log(level="INFO", message="hello world") # '{"level": "INFO", "message": "hello world"}'
+
+print(get_context()) # {}
 ```
 
 ## `object`

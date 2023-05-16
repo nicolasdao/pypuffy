@@ -21,7 +21,7 @@ import os
 
 sys.path.append(".")  # noqa # Adds higher directory to python modules path.
 
-from src.puffy.log import log
+from src.puffy.log import log, set_context, reset_context, get_context
 from src.puffy.error import catch_errors, StackedException as e
 
 
@@ -247,3 +247,87 @@ def test_incl_errors_log():
         assert len(err_msgs) > 0
         for msg in err_msgs:
             assert re.search(msg, l_item["errors"])
+
+
+def test_set_context():
+    logs = []
+
+    def print_mock(msg):
+        logs.append(msg)
+
+    input_01 = {
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+    input_01_bis = {
+        "hello": "world",
+        "request_id": 1234,
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+
+    log(**input_01, print_mock=print_mock)
+
+    assert logs[0] == json.dumps(input_01)
+
+    set_context(hello="world", request_id=1234)
+
+    log(**input_01, print_mock=print_mock)
+
+    assert logs[1] == json.dumps(input_01_bis)
+
+    set_context(hello="world", request_id=4567)
+    input_01_bis["request_id"] = 4567
+
+    log(**input_01, print_mock=print_mock)
+
+    assert logs[2] == json.dumps(input_01_bis)
+
+
+def test_get_context():
+    ctx = get_context()
+
+    assert json.dumps(ctx) == json.dumps({"hello": "world", "request_id": 4567})
+
+    # Proove that mutating the ctx object has no effect on the global context.
+    ctx["hello"] = "dude"
+
+    ctx2 = get_context()
+
+    assert json.dumps(ctx2) == json.dumps({"hello": "world", "request_id": 4567})
+
+
+def test_reset_context():
+    logs = []
+
+    def print_mock(msg):
+        logs.append(msg)
+
+    input_01 = {
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+    input_01_bis = {
+        "hello": "world",
+        "request_id": 4567,
+        "level": "INFO",
+        "message": "Hello world",
+        "code": "03030303",
+        "data": {"hello": "world"},
+    }
+
+    log(**input_01, print_mock=print_mock)
+
+    assert logs[0] == json.dumps(input_01_bis)
+
+    reset_context()
+
+    log(**input_01, print_mock=print_mock)
+
+    assert logs[1] == json.dumps(input_01)
